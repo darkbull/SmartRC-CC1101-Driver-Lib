@@ -247,6 +247,26 @@ void ELECHOUSE_CC1101::SpiReadBurstReg(byte addr, byte *buffer, byte num) {
     SpiEnd();
 }
 
+void ELECHOUSE_CC1101::SpiReadBurstReg(byte addr, byte *buffer, byte bufferSize,
+                                       byte num) {
+    byte i, temp;
+    SpiStart();
+    temp = addr | READ_BURST;
+    digitalWrite(SS_PIN, LOW);
+    while (digitalRead(MISO_PIN))
+        ;
+    SPI.transfer(temp);
+    for (i = 0; i < num; i++) {
+        if (i < bufferSize) {
+            buffer[i] = SPI.transfer(0);
+        } else {
+            SPI.transfer(0);
+        }
+    }
+    digitalWrite(SS_PIN, HIGH);
+    SpiEnd();
+}
+
 /****************************************************************
  *FUNCTION NAME:SpiReadStatus
  *FUNCTION     :CC1101 read status register
@@ -1290,6 +1310,24 @@ byte ELECHOUSE_CC1101::ReceiveData(byte *rxBuffer) {
         SpiStrobe(CC1101_SFRX);
         SpiStrobe(CC1101_SRX);
         return size;
+    } else {
+        SpiStrobe(CC1101_SFRX);
+        SpiStrobe(CC1101_SRX);
+        return 0;
+    }
+}
+
+byte ELECHOUSE_CC1101::ReceiveData(byte *rxBuffer, byte bufferSize) {
+    byte size;
+    byte status[2];
+
+    if (SpiReadStatus(CC1101_RXBYTES) & BYTES_IN_RXFIFO) {
+        size = SpiReadReg(CC1101_RXFIFO);
+        SpiReadBurstReg(CC1101_RXFIFO, rxBuffer, bufferSize, size);
+        SpiReadBurstReg(CC1101_RXFIFO, status, 2);
+        SpiStrobe(CC1101_SFRX);
+        SpiStrobe(CC1101_SRX);
+        return size > bufferSize ? bufferSize : size;
     } else {
         SpiStrobe(CC1101_SFRX);
         SpiStrobe(CC1101_SRX);

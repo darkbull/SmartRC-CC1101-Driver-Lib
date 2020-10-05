@@ -129,6 +129,7 @@ class ELECHOUSE_CC1101 {
     void SpiWriteBurstReg(byte addr, byte *buffer, byte num);
     byte SpiReadReg(byte addr);
     void SpiReadBurstReg(byte addr, byte *buffer, byte num);
+    void SpiReadBurstReg(byte addr, byte *buffer, byte bufferSize, byte num);
     void setSpi(void);
     void RegConfigSettings(void);
     void Calibrate(void);
@@ -163,6 +164,7 @@ class ELECHOUSE_CC1101 {
     void SendData(char *txchar);
     byte CheckReceiveFlag(void);
     byte ReceiveData(byte *rxBuffer);
+    byte ReceiveData(byte *rxBuffer, byte bufferSize);
     bool CheckCRC(void);
     void SpiStrobe(byte strobe);
     void SpiWriteReg(byte addr, byte value);
